@@ -16,7 +16,7 @@ public class OrderedPropertiesCheck extends AbstractCheck {
 
   Logger log = Logger.getLogger(OrderedPropertiesCheck.class.getName());
 
-  private boolean debug=false;
+  private boolean debug = false;
 
   @Override
   public int[] getDefaultTokens() {
@@ -44,16 +44,18 @@ public class OrderedPropertiesCheck extends AbstractCheck {
         riskyMessage(ast, "unable to retrieve variable name");
         return;
       }
-      debug=false;
+      debug = false;
       List<DetailAST> otherVariables = findChildren(classdef, and(notType(TokenTypes.METHOD_DEF, TokenTypes.CLASS_DEF, TokenTypes.TYPE), isType(TokenTypes.VARIABLE_DEF)), 30); // TODO 3?
-      debug=false;
+      debug = false;
       for (DetailAST cmpVar : otherVariables) {
         DetailAST cmpLabel = findVariableName(cmpVar);
         if (cmpLabel == null) {
           riskyMessage(cmpVar, "there was an issue processing names of variables to compare against");
           return;
         }
-        if (cmpLabel.getText().compareTo(variableName.getText()) > 0) {
+        boolean shouldBeBefore = cmpLabel.getText().compareTo(variableName.getText()) > 0;
+        boolean isBefore = cmpLabel.getLineNo() - variableName.getLineNo() > 0;
+        if (shouldBeBefore && !isBefore) {
           log(ast, String.format("%s should be before %s on line %d", variableName.getText(), cmpLabel.getText(), cmpLabel.getLineNo()));
           return;
         }
